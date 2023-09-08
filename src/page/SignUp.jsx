@@ -1,7 +1,15 @@
 import { useState } from "react";
 import { AiFillEyeInvisible, AiFillEye } from "react-icons/ai";
 import OAUTH from "../Component/OAUTH";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
+import { db } from "../Firebase";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { toast } from "react-toastify";
 
 function SignUp() {
   const [formData, setFormData] = useState({
@@ -17,6 +25,31 @@ function SignUp() {
       [e.target.id]: e.target.value,
     });
   }
+  const navigate = useNavigate();
+  async function onSubmit(e) {
+    e.preventDefault();
+    try {
+      const auth = getAuth();
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      updateProfile(auth.currentUser, {
+        displayName: name,
+      });
+      const user = userCredential.user;
+      const formDataCopy = { ...formData };
+      delete formDataCopy.password;
+      formDataCopy.timestamp = serverTimestamp();
+      await setDoc(doc(db, "users", user.uid), formDataCopy);
+      setFormData({ email: "", password: "", name: "" });
+      toast.success("sign up success");
+      navigate("/");
+    } catch (error) {
+      toast.error("something went wrong");
+    }
+  }
   return (
     <section>
       <h1 className="text-center mt-4 font-bold text-2xl ">Sign up</h1>
@@ -28,7 +61,7 @@ function SignUp() {
           />
         </div>
         <div className=" w-full md:w-[60%] lg:w-[40%] lg:ml-20">
-          <form>
+          <form onSubmit={onSubmit}>
             <input
               className="w-full  mb-6 px-4 py-2 text-xl text-gray-700 bg-white border-gray-300 rounded transition ease-in-out"
               type="text"
