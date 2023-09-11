@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { AiFillEyeInvisible, AiFillEye } from "react-icons/ai";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import OAUTH from "../Component/OAUTH";
+import { toast } from "react-toastify";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 
 function SignIn() {
   const [formData, setFormData] = useState({
@@ -10,11 +12,28 @@ function SignIn() {
   });
   const [showPassword, setShowPassword] = useState(true);
   const { email, password } = formData;
+  const navigate = useNavigate();
   function onChange(e) {
     setFormData((prevState) => ({
       ...prevState,
       [e.target.id]: e.target.value,
     }));
+  }
+  async function onClick(e) {
+    e.preventDefault();
+    try {
+      const auth = getAuth();
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      if (userCredential.user) {
+        navigate("/");
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
   }
   return (
     <section>
@@ -27,7 +46,7 @@ function SignIn() {
           />
         </div>
         <div className=" w-full md:w-[60%] lg:w-[40%] lg:ml-20">
-          <form>
+          <form onClick={onClick}>
             <input
               className="w-full  mb-6 px-4 py-2 text-xl text-gray-700 bg-white border-gray-300 rounded transition ease-in-out"
               type="email"
