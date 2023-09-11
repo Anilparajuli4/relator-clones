@@ -35,19 +35,24 @@ function SignUp() {
         email,
         password
       );
+      const user = userCredential.user;
       updateProfile(auth.currentUser, {
         displayName: name,
       });
-      const user = userCredential.user;
       const formDataCopy = { ...formData };
       delete formDataCopy.password;
       formDataCopy.timestamp = serverTimestamp();
+
       await setDoc(doc(db, "users", user.uid), formDataCopy);
-      setFormData({ email: "", password: "", name: "" });
-      toast.success("sign up success");
+      setFormData({
+        email: "",
+        password: "",
+        name: "",
+      });
+      toast.success("sign up successful");
       navigate("/");
     } catch (error) {
-      toast.error("something went wrong");
+      toast.error(error.message);
     }
   }
   return (
@@ -126,8 +131,8 @@ function SignUp() {
                 OR
               </p>
             </div>
+            <OAUTH />
           </form>
-          <OAUTH />
         </div>
       </div>
     </section>
